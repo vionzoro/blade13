@@ -123,6 +123,7 @@ function scarf() {
   ctx.globalAlpha = 1;
 }
 function blade(a, al, rev) {
+  const bc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_MAG;
   ctx.save(); ctx.rotate(a); ctx.globalAlpha = al;
   ctx.lineCap = 'round';
   if (rev) {                                             // 逆手: 刀身贴前臂向后
@@ -130,8 +131,8 @@ function blade(a, al, rev) {
     ctx.beginPath(); ctx.moveTo(3, 0); ctx.lineTo(11, 0); ctx.stroke();
     ctx.strokeStyle = '#1e1a2c'; ctx.lineWidth = 3.2;
     ctx.beginPath(); ctx.moveTo(11, 1); ctx.quadraticCurveTo(-4, 4, -22, 10); ctx.stroke();
-    glow(C_MAG, 9);
-    ctx.strokeStyle = C_MAG; ctx.lineWidth = 1.4;
+    glow(bc, 9);
+    ctx.strokeStyle = bc; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(11, -.6); ctx.quadraticCurveTo(-4, 2.2, -22, 8); ctx.stroke();
     noglow();
     ctx.globalAlpha = 1; ctx.restore(); return;
@@ -141,8 +142,8 @@ function blade(a, al, rev) {
   ctx.fillStyle = C_ICE; ctx.fillRect(11, -1, 2, 2);         // 发射器
   ctx.strokeStyle = '#1e1a2c'; ctx.lineWidth = 3.4;          // 刃芯(暗)
   ctx.beginPath(); ctx.moveTo(14, 1); ctx.quadraticCurveTo(30, -1, 46, -6); ctx.stroke();
-  glow(C_MAG, 11);                                           // 单分子刃口
-  ctx.strokeStyle = C_MAG; ctx.lineWidth = 1.6;
+  glow(bc, 11);                                           // 单分子刃口
+  ctx.strokeStyle = bc; ctx.lineWidth = 1.6;
   ctx.beginPath(); ctx.moveTo(14, -.4); ctx.quadraticCurveTo(30, -2.4, 46, -7.2); ctx.stroke();
   ctx.strokeStyle = '#fff'; ctx.lineWidth = .8; ctx.globalAlpha = al * .9;
   ctx.beginPath(); ctx.moveTo(15, 2); ctx.quadraticCurveTo(30, 0, 45, -4.6); ctx.stroke();

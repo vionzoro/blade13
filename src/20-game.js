@@ -108,14 +108,15 @@ function kill(e) {
   e.dead = 1; kills++;
   bump(); sKill(); cut(e);
   decal(e.x, e.y + e.r * .5, e.r * .9, ETY[e.ty].c);
-  ring(e.x, e.y, e.r * .8, e.r * (e.boss ? 7 : 3.2), e.boss ? .6 : .28, e.boss ? C_RED : '#fff', e.boss ? 6 : 2.5);
+  ring(e.x, e.y, e.r * .8, e.r * (e.boss ? 7 : 3.2), e.boss ? .6 : .28,
+    e.boss ? C_RED : P.fren > 0 ? RAINBOW[kills % 7] : '#fff', e.boss ? 6 : 2.5);
   if (e.boss) { hs(.16); punch(.1); levelUp(); } else if (!(kills % 7)) punch(.02);
   const b = ETY[e.ty];
   for (let i = 0; i < (e.boss ? 14 : 3); i++)
     G.push({ x: e.x + ri(20) - 10, y: e.y + ri(20) - 10, v: b.xp * (e.boss ? 4 : 1), vx: 0, vy: 0 });
   for (let i = 0; i < (e.boss ? 22 : 7); i++) {
     const a = rnd() * 6.283, s = 40 + rnd() * 190;
-    FX.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: .42, c: b.c });
+    FX.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: .42, c: P.fren > 0 ? RAINBOW[(kills + i) % 7] : b.c });
   }
   if (e.ty == 4 && !e.boss) for (let i = 0; i < 2; i++) spawn(0, 0, e.x + ri(30) - 15, e.y + ri(30) - 15);
   if (e.ty == 5) {                                   // 引爆: 波及范围内的一切

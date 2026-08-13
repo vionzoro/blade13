@@ -45,7 +45,7 @@ function drawWorld() {
   // 顶视夜城: 街区地砖 + 楼顶暗块 + 霓虹边条(全部由坐标哈希决定, 零存储)
   const gs = 64, vw = BW / VS, vh = BH / VS;
   const x0 = Math.floor((cam.x - vw / 2) / gs) * gs, y0 = Math.floor((cam.y - vh / 2) / gs) * gs;
-  const NEON = [C_MAG, C_ICE, C_AMB, '#f85898', '#00e8d8'];
+  const NEON = RAINBOW;
   for (let x = x0; x < x0 + vw + gs * 2; x += gs)
     for (let y = y0; y < y0 + vh + gs * 2; y += gs) {
       const gx = x / gs | 0, gy = y / gs | 0;
@@ -69,12 +69,12 @@ function drawWorld() {
       } else if (h < .2) {                             // 楼顶(纯装饰)
         ctx.fillStyle = '#070512';
         ctx.fillRect(x + 6, y + 6, gs - 12, gs - 12);
-        const nc = NEON[(h * 97 | 0) % 5];
+        const nc = NEON[(h * 97 | 0) % 7];
         ctx.globalAlpha = .5 + Math.sin(T * 2 + gx * 1.7 + gy) * .4;
         ctx.fillStyle = nc; ctx.fillRect(x + 6, y + 6, gs - 12, 2);
         ctx.globalAlpha = 1;
       } else if (h > .95) {                            // 街面导光带
-        ctx.fillStyle = C_ICE; ctx.globalAlpha = .18;
+        ctx.fillStyle = RAINBOW[((gx * 3 + gy * 5) & 255) % 7]; ctx.globalAlpha = .18;
         ctx.fillRect(x, y + gs / 2 - 1, gs, 2); ctx.globalAlpha = 1;
       }
     }
@@ -102,7 +102,8 @@ function drawWorld() {
 
   // 经验球
   if (G.length < 70) glow(C_XP, 8);
-  for (const g of G) {
+  for (let i = 0; i < G.length; i++) {
+    const g = G[i], gc = RAINBOW[(i + kills) % 7];
     if (!vis(g.x, g.y, 12)) continue;
     ctx.globalAlpha = .9;
     if (g.hl) {                                       // 血包: 红十字, 与绿色经验分开
@@ -110,12 +111,12 @@ function drawWorld() {
       ctx.fillStyle = '#ff5a7a';
       ctx.fillRect(g.x - 2, g.y - 7 * pz, 4, 14 * pz); ctx.fillRect(g.x - 7 * pz, g.y - 2, 14 * pz, 4);
     } else {
-      ctx.fillStyle = C_XP;
+      ctx.fillStyle = gc;
       ctx.beginPath(); ctx.moveTo(g.x, g.y - 5); ctx.lineTo(g.x + 4, g.y); ctx.lineTo(g.x, g.y + 5); ctx.lineTo(g.x - 4, g.y); ctx.fill();
     }
     const sp = hyp(g.vx, g.vy);
     if (sp > 90) {                                   // 被吸走时拉出拖尾
-      ctx.globalAlpha = .35; ctx.strokeStyle = C_XP; ctx.lineWidth = 2;
+      ctx.globalAlpha = .35; ctx.strokeStyle = gc; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x - g.vx * .05, g.y - g.vy * .05); ctx.stroke();
     }
   }
@@ -138,6 +139,7 @@ function drawWorld() {
   // 刀光: 实心月牙 + 发光锋线
   for (const s of SL) {
     const k = s.t / s.mt, e = 1 - k;
+    const pc = P.fren > 0 ? RAINBOW[(((T * 12 + s.a * 3) | 0) & 255) % 7] : C_ICE;
     const r0 = s.r * (.42 + e * .34), r1 = s.r * (1.04 + e * .16);
     const gd = ctx.createRadialGradient(s.x, s.y, r0, s.x, s.y, r1);
     gd.addColorStop(0, 'rgba(62,224,247,0)');
@@ -148,8 +150,8 @@ function drawWorld() {
     ctx.arc(s.x, s.y, r1, s.a - s.arc / 2, s.a + s.arc / 2);
     ctx.arc(s.x, s.y, r0, s.a + s.arc / 2, s.a - s.arc / 2, 1);
     ctx.closePath(); ctx.fill();
-    glow('#bff4ff', 14);
-    ctx.strokeStyle = 'rgba(255,255,255,' + k.toFixed(3) + ')'; ctx.lineWidth = 1.6 + k * 3.4;
+    glow(pc, 14);
+    ctx.strokeStyle = pc; ctx.lineWidth = 1.6 + k * 3.4;
     ctx.beginPath(); ctx.arc(s.x, s.y, r1 * .95, s.a - s.arc / 2, s.a + s.arc / 2); ctx.stroke();
     noglow();
   }
@@ -168,8 +170,9 @@ function drawWorld() {
   // 突进残影
   for (const g of GH) {
     const k = g.t / .26;
+    const pc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_ICE;
     ctx.globalAlpha = k * .5;
-    ctx.fillStyle = C_ICE;
+    ctx.fillStyle = pc;
     ctx.beginPath(); ctx.ellipse(g.x, g.y - 4, 9, 15, 0, 0, 6.283); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + Math.cos(g.f) * 34, g.y + Math.sin(g.f) * 34); ctx.stroke();
@@ -315,7 +318,7 @@ function hud() {
   ctx.fillStyle = C_XP; ctx.font = '13px monospace'; ctx.fillText('LV ' + P.lv, 282, 30);
   // 狂化槽
   ctx.fillStyle = '#000a'; ctx.fillRect(14, 45, 260, 5);
-  ctx.fillStyle = P.fren > 0 ? C_MAG : C_AMB; ctx.fillRect(14, 45, 260 * cl(P.fren > 0 ? 1 : P.rage / P.rmax, 0, 1), 5);
+  ctx.fillStyle = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_AMB; ctx.fillRect(14, 45, 260 * cl(P.fren > 0 ? 1 : P.rage / P.rmax, 0, 1), 5);
   ctx.font = '10px monospace'; ctx.fillStyle = P.fren > 0 ? C_MAG : '#6a6480';
   ctx.fillText(P.fren > 0 ? 'PRISM BREAK ' + P.fren.toFixed(1) : P.rage >= P.rmax ? 'PRISM BREAK READY' : 'PRISM BREAK', 282, 50);
   // 时间 / 击杀
