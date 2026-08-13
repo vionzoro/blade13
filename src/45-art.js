@@ -150,6 +150,14 @@ function blade(a, al, rev) {
 }
 
 // ---- 怪物 ----
+function horn(e, r) {
+  const c = e.boss ? C_BG : RAINBOW[e.ty % 7], l = e.boss ? 1.8 : 1;
+  ctx.save(); glow(e.boss ? '#fff' : c, e.boss ? 6 : 3);
+  ctx.fillStyle = c; ctx.beginPath();
+  ctx.moveTo(r * .12, -r * .45); ctx.lineTo(r * .7, -r * l); ctx.lineTo(r * .46, -r * .25); ctx.fill();
+  if (e.boss) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); }
+  noglow(); ctx.restore();
+}
 function creature(e, lod) {
   const b = ETY[e.ty], r = e.r, hit = e.flash > 0;
   const col = hit ? '#fff' : b.c;
@@ -161,6 +169,7 @@ function creature(e, lod) {
   ctx.fillStyle = 'rgba(0,0,0,.3)';
   ctx.beginPath(); ctx.ellipse(0, r * .92, r * .8, r * .28, 0, 0, 6.283); ctx.fill();
   ctx.translate(0, bob); ctx.scale(fx, 1);
+  horn(e, r);
 
   if (lod) {                                       // 密集时降级: 剪影+眼睛
     ctx.fillStyle = col;
@@ -285,17 +294,11 @@ function creature(e, lod) {
   }
   ctx.restore();
 
-  if (e.boss) {                                    // 首领: 角冠 + 血条
+  if (e.boss) {                                    // 首领: 脉冲环 + 血条
     ctx.save(); ctx.translate(e.x, e.y);
     ctx.strokeStyle = C_RED; ctx.lineWidth = 2; ctx.globalAlpha = .55;
     ctx.beginPath(); ctx.arc(0, 0, r * 1.35 + Math.sin(T * 5) * 2, 0, 6.283); ctx.stroke();
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#ffb14a'; ctx.lineWidth = 3;
-    for (let i = -2; i < 3; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * r * .38, -r * 1.02);
-      ctx.lineTo(i * r * .44, -r * 1.02 - r * (.42 - Math.abs(i) * .08)); ctx.stroke();
-    }
     ctx.fillStyle = '#000a'; ctx.fillRect(-34, -r - 22, 68, 6);
     ctx.fillStyle = C_RED; ctx.fillRect(-34, -r - 22, 68 * cl(e.hp / e.mhp, 0, 1), 6);
     ctx.restore();

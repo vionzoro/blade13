@@ -28,13 +28,17 @@ const ok = (c, m) => { c ? (pass++, console.log('  ok  ' + m)) : (fail++, consol
 const run = (l, f) => { try { f(); ok(1, l); } catch (e) { ok(0, l + ' -> ' + e.message); } };
 const frames = n => { let ts = performance.now ? 16 : 16; for (let i = 0; i < n; i++) { const cb = raf; raf = null; cb(ts); ts += 16.7; } };
 
-run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,boss:()=>spawn(2,1)};', C));
+run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,boss:()=>spawn(2,1)};', C));
 const A = sb.__A;
 ok(!!raf, '主循环启动');
 run('开场帧', () => frames(1));
 ok((calls.fillText || 0) > 0, '开场有文字绘制');
 ok(texts.includes('BLADE:13 — PRISM BREAK'), '主题标题已绘制');
 ok(texts.includes('SEVER THE UNICORN NETWORK.'), '主题目标已绘制');
+const fillBeforeHorn = calls.fill || 0;
+run('独角路径可绘制', () => A.horn()({ ty: 0, boss: 0, el: 0 }, 12));
+ok(typeof A.horn() === 'function', '公共 horn 绘制器存在');
+ok((calls.fill || 0) > fillBeforeHorn, 'horn 产生填充路径');
 ok(A.rain().length === 7, '共享光谱包含七色');
 run('点 BEGIN 进入战斗', () => L.c.pointerdown({ clientX: 640, clientY: 545, pointerId: 1 }));
 ok(A.g().ST === 1, '状态=战斗中');
