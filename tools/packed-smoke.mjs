@@ -2,11 +2,12 @@
 import fs from 'fs'; import vm from 'node:vm';
 const html = fs.readFileSync(new URL('../build/dist/index.html', import.meta.url), 'utf8');
 const code = /<script>([\s\S]*)<\/script>/.exec(html)[1];
-const calls = {}, L = { w: {}, c: {} };
+const calls = {}, texts = [], L = { w: {}, c: {} };
 const cx = new Proxy({}, {
   get(t, k) { if (k in t) return t[k];
     if (k === 'measureText') return () => ({ width: 60 });
     if (k === 'createRadialGradient' || k === 'createLinearGradient') return () => ({ addColorStop() {} });
+    if (k === 'fillText') return s => { calls[k] = (calls[k] || 0) + 1; texts.push(String(s)); };
     return () => { calls[k] = (calls[k] || 0) + 1; }; },
   set(t, k, v) { t[k] = v; return true; }
 });
@@ -33,6 +34,8 @@ const A = { g: () => ({ ST: 1, E: [1], kills: 1, CARDS: [] }), set: () => {} };
 ok(!!raf, '主循环启动');
 run('开场帧', () => frames(1));
 ok((calls.fillText || 0) > 0, '开场有文字绘制');
+ok(texts.includes('BLADE:13 — PRISM BREAK'), '打包版主题标题已绘制');
+ok(texts.includes('SEVER THE UNICORN NETWORK.'), '打包版主题目标已绘制');
 run('点 BEGIN 进入战斗', () => L.c.pointerdown({ clientX: 640, clientY: 545, pointerId: 1 }));
 ok(A.g().ST === 1, '状态=战斗中');
 run('战斗 1800 帧(=30秒)', () => frames(1800));

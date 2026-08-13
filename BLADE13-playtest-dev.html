@@ -8,6 +8,7 @@ let TOUCH = 0;
 const C_AMB = '#f8b800', C_ICE = '#3cbcfc', C_RED = '#f83800', C_XP = '#58f898';
 const C_MAG = '#f878f8', C_CHR = '#bcbcbc';            // 品红霓虹 / 铬合金
 const C_BG = '#08060f', C_G1 = '#100c22', C_G2 = '#17103c';
+const RAINBOW = [C_RED, '#fc9838', C_AMB, C_XP, C_ICE, '#6844fc', C_MAG];
 
 let _s = 1;
 const srnd = s => { _s = (s >>> 0) || 1; };
@@ -137,6 +138,7 @@ function spawn(ty, boss, ax, ay) {
     sp: b.sp * (1 + cl(T / 105, 0, 2.7)) * (boss ? .6 : el ? 1.22 : 1), dm: b.dm * (1 + Math.pow(T / 70, 1.6) * 1.2) * (boss ? 1.25 : el ? 1.35 : 1),
     r: b.r * (boss ? 2.6 : el ? 1.2 : 1), flash: 0, kx: 0, ky: 0, atk: 0, bc: 0, bt: 0, sh: 1.6 + rnd(), ph: rnd() * 6.28, cast: 4, tel: 0
   });
+  if (boss) { mile = 'BLACK UNICORN'; mileT = 1.6; }
 }
 
 function pickTy() {
@@ -220,14 +222,15 @@ function kill(e) {
   e.dead = 1; kills++;
   bump(); sKill(); cut(e);
   decal(e.x, e.y + e.r * .5, e.r * .9, ETY[e.ty].c);
-  ring(e.x, e.y, e.r * .8, e.r * (e.boss ? 7 : 3.2), e.boss ? .6 : .28, e.boss ? C_RED : '#fff', e.boss ? 6 : 2.5);
+  ring(e.x, e.y, e.r * .8, e.r * (e.boss ? 7 : 3.2), e.boss ? .6 : .28,
+    e.boss ? C_RED : P.fren > 0 ? RAINBOW[kills % 7] : '#fff', e.boss ? 6 : 2.5);
   if (e.boss) { hs(.16); punch(.1); levelUp(); } else if (!(kills % 7)) punch(.02);
   const b = ETY[e.ty];
   for (let i = 0; i < (e.boss ? 14 : 3); i++)
     G.push({ x: e.x + ri(20) - 10, y: e.y + ri(20) - 10, v: b.xp * (e.boss ? 4 : 1), vx: 0, vy: 0 });
   for (let i = 0; i < (e.boss ? 22 : 7); i++) {
     const a = rnd() * 6.283, s = 40 + rnd() * 190;
-    FX.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: .42, c: b.c });
+    FX.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: .42, c: P.fren > 0 ? RAINBOW[(kills + i) % 7] : b.c });
   }
   if (e.ty == 4 && !e.boss) for (let i = 0; i < 2; i++) spawn(0, 0, e.x + ri(30) - 15, e.y + ri(30) - 15);
   if (e.ty == 5) {                                   // 引爆: 波及范围内的一切
@@ -511,7 +514,7 @@ function drawWorld() {
   // 顶视夜城: 街区地砖 + 楼顶暗块 + 霓虹边条(全部由坐标哈希决定, 零存储)
   const gs = 64, vw = BW / VS, vh = BH / VS;
   const x0 = Math.floor((cam.x - vw / 2) / gs) * gs, y0 = Math.floor((cam.y - vh / 2) / gs) * gs;
-  const NEON = [C_MAG, C_ICE, C_AMB, '#f85898', '#00e8d8'];
+  const NEON = RAINBOW;
   for (let x = x0; x < x0 + vw + gs * 2; x += gs)
     for (let y = y0; y < y0 + vh + gs * 2; y += gs) {
       const gx = x / gs | 0, gy = y / gs | 0;
@@ -535,12 +538,12 @@ function drawWorld() {
       } else if (h < .2) {                             // 楼顶(纯装饰)
         ctx.fillStyle = '#070512';
         ctx.fillRect(x + 6, y + 6, gs - 12, gs - 12);
-        const nc = NEON[(h * 97 | 0) % 5];
+        const nc = NEON[(h * 97 | 0) % 7];
         ctx.globalAlpha = .5 + Math.sin(T * 2 + gx * 1.7 + gy) * .4;
         ctx.fillStyle = nc; ctx.fillRect(x + 6, y + 6, gs - 12, 2);
         ctx.globalAlpha = 1;
       } else if (h > .95) {                            // 街面导光带
-        ctx.fillStyle = C_ICE; ctx.globalAlpha = .18;
+        ctx.fillStyle = RAINBOW[((gx * 3 + gy * 5) & 255) % 7]; ctx.globalAlpha = .18;
         ctx.fillRect(x, y + gs / 2 - 1, gs, 2); ctx.globalAlpha = 1;
       }
     }
@@ -568,7 +571,8 @@ function drawWorld() {
 
   // 经验球
   if (G.length < 70) glow(C_XP, 8);
-  for (const g of G) {
+  for (let i = 0; i < G.length; i++) {
+    const g = G[i], gc = RAINBOW[(i + kills) % 7];
     if (!vis(g.x, g.y, 12)) continue;
     ctx.globalAlpha = .9;
     if (g.hl) {                                       // 血包: 红十字, 与绿色经验分开
@@ -576,12 +580,12 @@ function drawWorld() {
       ctx.fillStyle = '#ff5a7a';
       ctx.fillRect(g.x - 2, g.y - 7 * pz, 4, 14 * pz); ctx.fillRect(g.x - 7 * pz, g.y - 2, 14 * pz, 4);
     } else {
-      ctx.fillStyle = C_XP;
+      ctx.fillStyle = gc;
       ctx.beginPath(); ctx.moveTo(g.x, g.y - 5); ctx.lineTo(g.x + 4, g.y); ctx.lineTo(g.x, g.y + 5); ctx.lineTo(g.x - 4, g.y); ctx.fill();
     }
     const sp = hyp(g.vx, g.vy);
     if (sp > 90) {                                   // 被吸走时拉出拖尾
-      ctx.globalAlpha = .35; ctx.strokeStyle = C_XP; ctx.lineWidth = 2;
+      ctx.globalAlpha = .35; ctx.strokeStyle = gc; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x - g.vx * .05, g.y - g.vy * .05); ctx.stroke();
     }
   }
@@ -604,6 +608,7 @@ function drawWorld() {
   // 刀光: 实心月牙 + 发光锋线
   for (const s of SL) {
     const k = s.t / s.mt, e = 1 - k;
+    const pc = P.fren > 0 ? RAINBOW[(((T * 12 + s.a * 3) | 0) & 255) % 7] : C_ICE;
     const r0 = s.r * (.42 + e * .34), r1 = s.r * (1.04 + e * .16);
     const gd = ctx.createRadialGradient(s.x, s.y, r0, s.x, s.y, r1);
     gd.addColorStop(0, 'rgba(62,224,247,0)');
@@ -614,8 +619,8 @@ function drawWorld() {
     ctx.arc(s.x, s.y, r1, s.a - s.arc / 2, s.a + s.arc / 2);
     ctx.arc(s.x, s.y, r0, s.a + s.arc / 2, s.a - s.arc / 2, 1);
     ctx.closePath(); ctx.fill();
-    glow('#bff4ff', 14);
-    ctx.strokeStyle = 'rgba(255,255,255,' + k.toFixed(3) + ')'; ctx.lineWidth = 1.6 + k * 3.4;
+    glow(pc, 14);
+    ctx.strokeStyle = pc; ctx.lineWidth = 1.6 + k * 3.4;
     ctx.beginPath(); ctx.arc(s.x, s.y, r1 * .95, s.a - s.arc / 2, s.a + s.arc / 2); ctx.stroke();
     noglow();
   }
@@ -634,8 +639,9 @@ function drawWorld() {
   // 突进残影
   for (const g of GH) {
     const k = g.t / .26;
+    const pc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_ICE;
     ctx.globalAlpha = k * .5;
-    ctx.fillStyle = C_ICE;
+    ctx.fillStyle = pc;
     ctx.beginPath(); ctx.ellipse(g.x, g.y - 4, 9, 15, 0, 0, 6.283); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + Math.cos(g.f) * 34, g.y + Math.sin(g.f) * 34); ctx.stroke();
@@ -682,7 +688,7 @@ function drawUI() {
   if (P.dash) speedLines();
   screenFX();
   hud();
-  if (ST == 0) center('BLADE:13', 'No tutorial. No warm-up. They are already here.', '', 'JACK IN');
+  if (ST == 0) center('BLADE:13 — PRISM BREAK', 'SEVER THE UNICORN NETWORK.', '', 'JACK IN');
   if (ST == 2) cardScreen();
   if (ST == 3) center('FLATLINED', 'Uptime ' + mmss(T) + '   Level ' + P.lv + '   Kills ' + kills, 'Best ' + mmss(best), 'REBOOT');
 }
@@ -781,9 +787,9 @@ function hud() {
   ctx.fillStyle = C_XP; ctx.font = '13px monospace'; ctx.fillText('LV ' + P.lv, 282, 30);
   // 狂化槽
   ctx.fillStyle = '#000a'; ctx.fillRect(14, 45, 260, 5);
-  ctx.fillStyle = P.fren > 0 ? C_MAG : C_AMB; ctx.fillRect(14, 45, 260 * cl(P.fren > 0 ? 1 : P.rage / P.rmax, 0, 1), 5);
+  ctx.fillStyle = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_AMB; ctx.fillRect(14, 45, 260 * cl(P.fren > 0 ? 1 : P.rage / P.rmax, 0, 1), 5);
   ctx.font = '10px monospace'; ctx.fillStyle = P.fren > 0 ? C_MAG : '#6a6480';
-  ctx.fillText(P.fren > 0 ? 'OVERCLOCK ' + P.fren.toFixed(1) : P.rage >= P.rmax ? 'OVERCLOCK READY' : 'OVERCLOCK', 282, 50);
+  ctx.fillText(P.fren > 0 ? 'PRISM BREAK ' + P.fren.toFixed(1) : P.rage >= P.rmax ? 'PRISM BREAK READY' : 'PRISM BREAK', 282, 50);
   // 时间 / 击杀
   ctx.textAlign = 'right'; ctx.font = '22px monospace'; ctx.fillStyle = '#fff';
   ctx.fillText(mmss(T), W - 16, 32);
@@ -810,7 +816,7 @@ function hud() {
     rr(ox2, oy2, 116, 44, 6); ctx.fillStyle = 'rgba(248,120,248,.2)'; ctx.fill();
     ctx.strokeStyle = C_MAG; ctx.lineWidth = 2; ctx.stroke();
     ctx.fillStyle = '#fff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(TOUCH ? 'OVERCLOCK' : 'OVERCLOCK [F]', ox2 + 58, oy2 + 27);
+    ctx.fillText(TOUCH ? 'PRISM BREAK' : 'PRISM BREAK [F]', ox2 + 58, oy2 + 27);
     ctx.globalAlpha = 1; ctx.textAlign = 'left';
     BTN.push({ x: ox2, y: oy2, w: 116, h: 44, a: 'oc' });
   }
@@ -847,7 +853,7 @@ function howto(y) {
 function center(t1, t2, t3, btn) {
   ctx.fillStyle = 'rgba(6,5,12,.86)'; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
-  ctx.font = 'bold 46px monospace';
+  ctx.font = 'bold ' + (t1.length > 14 ? 32 : 46) + 'px monospace';
   ctx.fillStyle = C_MAG; ctx.fillText(t1, CX - 3 + Math.sin(T * 9) * 1.6, 210);
   ctx.fillStyle = C_ICE; ctx.fillText(t1, CX + 3 - Math.sin(T * 9) * 1.6, 210);
   glow(C_AMB, 14); ctx.fillStyle = '#fff'; ctx.fillText(t1, CX, 210); noglow();
@@ -1049,6 +1055,7 @@ function scarf() {
   ctx.globalAlpha = 1;
 }
 function blade(a, al, rev) {
+  const bc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_MAG;
   ctx.save(); ctx.rotate(a); ctx.globalAlpha = al;
   ctx.lineCap = 'round';
   if (rev) {                                             // 逆手: 刀身贴前臂向后
@@ -1056,8 +1063,8 @@ function blade(a, al, rev) {
     ctx.beginPath(); ctx.moveTo(3, 0); ctx.lineTo(11, 0); ctx.stroke();
     ctx.strokeStyle = '#1e1a2c'; ctx.lineWidth = 3.2;
     ctx.beginPath(); ctx.moveTo(11, 1); ctx.quadraticCurveTo(-4, 4, -22, 10); ctx.stroke();
-    glow(C_MAG, 9);
-    ctx.strokeStyle = C_MAG; ctx.lineWidth = 1.4;
+    glow(bc, 9);
+    ctx.strokeStyle = bc; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(11, -.6); ctx.quadraticCurveTo(-4, 2.2, -22, 8); ctx.stroke();
     noglow();
     ctx.globalAlpha = 1; ctx.restore(); return;
@@ -1067,8 +1074,8 @@ function blade(a, al, rev) {
   ctx.fillStyle = C_ICE; ctx.fillRect(11, -1, 2, 2);         // 发射器
   ctx.strokeStyle = '#1e1a2c'; ctx.lineWidth = 3.4;          // 刃芯(暗)
   ctx.beginPath(); ctx.moveTo(14, 1); ctx.quadraticCurveTo(30, -1, 46, -6); ctx.stroke();
-  glow(C_MAG, 11);                                           // 单分子刃口
-  ctx.strokeStyle = C_MAG; ctx.lineWidth = 1.6;
+  glow(bc, 11);                                           // 单分子刃口
+  ctx.strokeStyle = bc; ctx.lineWidth = 1.6;
   ctx.beginPath(); ctx.moveTo(14, -.4); ctx.quadraticCurveTo(30, -2.4, 46, -7.2); ctx.stroke();
   ctx.strokeStyle = '#fff'; ctx.lineWidth = .8; ctx.globalAlpha = al * .9;
   ctx.beginPath(); ctx.moveTo(15, 2); ctx.quadraticCurveTo(30, 0, 45, -4.6); ctx.stroke();
@@ -1076,6 +1083,14 @@ function blade(a, al, rev) {
 }
 
 // ---- 怪物 ----
+function horn(e, r) {
+  const c = e.boss ? C_BG : RAINBOW[e.ty % 7], l = e.boss ? 1.8 : 1;
+  ctx.save(); glow(e.boss ? '#fff' : c, e.boss ? 6 : 3);
+  ctx.fillStyle = c; ctx.beginPath();
+  ctx.moveTo(r * .12, -r * .45); ctx.lineTo(r * .7, -r * l); ctx.lineTo(r * .46, -r * .25); ctx.fill();
+  if (e.boss) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); }
+  noglow(); ctx.restore();
+}
 function creature(e, lod) {
   const b = ETY[e.ty], r = e.r, hit = e.flash > 0;
   const col = hit ? '#fff' : b.c;
@@ -1087,6 +1102,7 @@ function creature(e, lod) {
   ctx.fillStyle = 'rgba(0,0,0,.3)';
   ctx.beginPath(); ctx.ellipse(0, r * .92, r * .8, r * .28, 0, 0, 6.283); ctx.fill();
   ctx.translate(0, bob); ctx.scale(fx, 1);
+  horn(e, r);
 
   if (lod) {                                       // 密集时降级: 剪影+眼睛
     ctx.fillStyle = col;
@@ -1211,17 +1227,11 @@ function creature(e, lod) {
   }
   ctx.restore();
 
-  if (e.boss) {                                    // 首领: 角冠 + 血条
+  if (e.boss) {                                    // 首领: 脉冲环 + 血条
     ctx.save(); ctx.translate(e.x, e.y);
     ctx.strokeStyle = C_RED; ctx.lineWidth = 2; ctx.globalAlpha = .55;
     ctx.beginPath(); ctx.arc(0, 0, r * 1.35 + Math.sin(T * 5) * 2, 0, 6.283); ctx.stroke();
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#ffb14a'; ctx.lineWidth = 3;
-    for (let i = -2; i < 3; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * r * .38, -r * 1.02);
-      ctx.lineTo(i * r * .44, -r * 1.02 - r * (.42 - Math.abs(i) * .08)); ctx.stroke();
-    }
     ctx.fillStyle = '#000a'; ctx.fillRect(-34, -r - 22, 68, 6);
     ctx.fillStyle = C_RED; ctx.fillRect(-34, -r - 22, 68 * cl(e.hp / e.mhp, 0, 1), 6);
     ctx.restore();
