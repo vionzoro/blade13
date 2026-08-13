@@ -2,15 +2,22 @@
 import fs from 'fs'; import vm from 'node:vm';
 const code = fs.readFileSync(new URL('../build/game.js', import.meta.url), 'utf8');
 const calls = {}, texts = [], styles = new Set(), L = { w: {}, c: {} };
+let fillStyle = '', path = [], prismTargets = [];
 const cx = new Proxy({}, {
   get(t, k) { if (k in t) return t[k];
     if (k === 'measureText') return () => ({ width: 60 });
     if (k === 'createRadialGradient' || k === 'createLinearGradient') return () => ({ addColorStop() {} });
     if (k === 'fillText') return s => { calls[k] = (calls[k] || 0) + 1; texts.push(String(s)); };
+    if (k === 'beginPath') return () => { calls[k] = (calls[k] || 0) + 1; path = []; };
+    if (k === 'moveTo' || k === 'lineTo') return (x, y) => { calls[k] = (calls[k] || 0) + 1; path.push([x, y]); };
+    if (k === 'fill') return () => {
+      calls[k] = (calls[k] || 0) + 1;
+      if (path.length === 4 && prismTargets.some(([x, y]) => path[0][0] === x && path[0][1] === y - 5 && path[1][0] === x + 4 && path[1][1] === y && path[2][0] === x && path[2][1] === y + 5 && path[3][0] === x - 4 && path[3][1] === y)) styles.add(fillStyle);
+    };
     return () => { calls[k] = (calls[k] || 0) + 1; }; },
   set(t, k, v) {
     t[k] = v;
-    if ((k === 'fillStyle' || k === 'strokeStyle') && typeof v === 'string') styles.add(v);
+    if (k === 'fillStyle' && typeof v === 'string') fillStyle = v;
     return true;
   }
 });
@@ -32,7 +39,7 @@ const ok = (c, m) => { c ? (pass++, console.log('  ok  ' + m)) : (fail++, consol
 const run = (l, f) => { try { f(); ok(1, l); } catch (e) { ok(0, l + ' -> ' + e.message); } };
 const frames = n => { let ts = performance.now ? 16 : 16; for (let i = 0; i < n; i++) { const cb = raf; raf = null; cb(ts); ts += 16.7; } };
 
-run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,boss:()=>spawn(2,1),prism:()=>{P.fren=1;G=(typeof RAINBOW==="undefined"?[]:RAINBOW).map((c,i)=>({x:P.x+i*8,y:P.y,v:1,vx:0,vy:0}))}};', C));
+run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,G,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,boss:()=>spawn(2,1),prism:()=>{P.fren=1;return G=(typeof RAINBOW==="undefined"?[]:RAINBOW).map((c,i)=>({x:P.x+i*8,y:P.y,v:1,vx:0,vy:0}))}};', C));
 const A = sb.__A;
 ok(!!raf, '主循环启动');
 run('开场帧', () => frames(1));
@@ -57,8 +64,10 @@ ok(texts.includes('BLACK UNICORN'), '首领警告已绘制');
 run('战斗 1800 帧(=30秒)', () => frames(1800));
 ok(A.g().E.length > 0, '敌人已刷出 ' + A.g().E.length + ' 个');
 ok(A.g().kills > 0, '已产生击杀 ' + A.g().kills);
-run('七色棱镜战斗帧', () => { A.prism(); frames(2); });
+styles.clear();
+run('七色棱镜战斗帧', () => { prismTargets = A.prism().map(g => [g.x, g.y]); A.set('ST', 2); frames(2); });
 ok(A.rain().every(c => styles.has(c)), '战斗帧绘制完整七色光谱');
+A.g().G.length = 0; A.g().P.fren = 0; A.set('ST', 1);
 run('虚拟摇杆 拖动/抬起', () => {
   L.c.pointerdown({ clientX: 300, clientY: 400, pointerId: 2 });
   L.c.pointermove({ clientX: 360, clientY: 430, pointerId: 2 });
