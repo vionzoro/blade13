@@ -1,0 +1,20 @@
+{
+  "name": "blade13",
+  "version": "1.0.0",
+  "description": "A 13-kilobyte offline cyberpunk action game",
+  "scripts": {
+    "build": "python3 build.py",
+    "test": "sh tools/qa.sh",
+    "verify": "sh tools/release-verify.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "roadroller": "2.1.0",
+    "terser": "5.50.0"
+  }
+}
