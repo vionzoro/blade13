@@ -52,7 +52,7 @@ function wave(dt) {
     for (let i = 0; i < n; i++) if (E.length < 460) spawn(pickTy());
   }
   bossT -= dt;
-  if (bossT <= 0) { bossT = 32; spawn(2, 1); shake = 9; sBoss(); const b = E[E.length - 1]; if (b) ring(b.x, b.y, 10, 220, .8, C_RED, 4); }
+  if (bossT <= 0) { bossT = 32; spawn(2, 1); shake = 9; sBoss(); const b = E[E.length - 1]; if (b) prismRing(b.x, b.y, 10, 220, .8, 4); }
 }
 
 // ---- 攻击: 扇形横扫, 同时命中范围内所有敌人 ----
@@ -216,11 +216,11 @@ function step(dt, ix, iy) {
         if (e.tel > 0) {
           e.tel -= dt;
           if (e.tel <= 0) {
-            e.cast = 4.6; ring(e.x, e.y, 12, 160, .34, '#fff', 6);
+            e.cast = 4.6; prismRing(e.x, e.y, 12, 160, .34, 6);
             kick(e.x, e.y, 10); hs(.05); sBoss(); punch(.06);
             if (hyp(P.x - e.x, P.y - e.y) < 150) hurt(e.dm * 1.3);
           }
-        } else if ((e.cast -= dt) <= 0) { e.tel = 1.05; ring(e.x, e.y, 24, 150, 1.05, C_RED, 3); }
+        } else if ((e.cast -= dt) <= 0) { e.tel = 1.05; prismRing(e.x, e.y, 24, 150, 1.05, 3); }
       }
       if (e.ty == 6) {                               // 孵化巢: 持续产兵, 且会先鼓胀预告
         e.atk -= dt;

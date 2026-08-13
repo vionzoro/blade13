@@ -184,8 +184,12 @@ function drawWorld() {
   glow('#fff', 10);
   for (const r of RING) {
     const k = 1 - r.t / r.mt, e = 1 - Math.pow(1 - k, 3);
-    ctx.strokeStyle = r.c; ctx.globalAlpha = (1 - k) * .9; ctx.lineWidth = r.w * (1 - k * .7);
-    ctx.beginPath(); ctx.arc(r.x, r.y, r.r + (r.mr - r.r) * e, 0, 6.283); ctx.stroke();
+    const n = r.c == RAINBOW ? 7 : 1;
+    ctx.globalAlpha = (1 - k) * .9; ctx.lineWidth = r.w * (1 - k * .7);
+    for (let i = 0; i < n; i++) {
+      ctx.strokeStyle = n > 1 ? r.c[i] : r.c;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r + (r.mr - r.r) * e, i * 6.283 / n, (i + 1) * 6.283 / n); ctx.stroke();
+    }
   }
   ctx.globalAlpha = 1; noglow();
 

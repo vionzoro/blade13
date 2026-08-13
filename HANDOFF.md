@@ -67,10 +67,10 @@
 
 | 文件 | 用途 |
 |---|---|
-| `BLADE13-js13k-submission.zip` | **提交包**，12,963 字节，内含单个 index.html |
+| `BLADE13-js13k-submission.zip` | **提交包**，13,021 字节，SHA-256 `39824a519c335fb5dfeed6bf726f2ac50fcabb09122b1d846d6a0a44458f41cb`，内含单个 index.html |
 | `BLADE13-submission-index.html` | 上面 zip 解开后的内容，可单独部署 |
 | `BLADE13-playtest-dev.html` | 未压缩可读版，调试用，双击即玩 |
-| `BLADE13-fixed-handoff.zip` | 完整修复版源码与交接材料，推 GitHub 时取其中项目目录 |
+| 当前 Git 仓库 / worktree | **完整可读源码**，含 `src/`、`build.py`、`tools/`、文档与锁定依赖；公开源码时直接发布当前仓库 |
 | `README.md` | 仓库 README，规则要求 |
 | `提交清单.md` | 表单逐项填写内容 + 提交前自检表 |
 
@@ -108,7 +108,7 @@ npm run verify         # 完整发布验证：再覆盖专项探针、种子扫�
 |---|---|
 | `tools/bot-test.mjs` | 模拟核心：确定性、五分钟自动对局、数值不爆炸、卡池层数上限 |
 | `tools/render-smoke.mjs` | 全部渲染路径（Canvas 桩 Proxy 化），四种状态 + 输入路径 |
-| `tools/packed-smoke.mjs` | **Roadroller 打包版真的能跑** —— 防 js13k 经典翻车「dev 好好的、压完就炸」 |
+| `tools/packed-smoke.mjs` | Roadroller 打包版自解压、启动主循环，绘制精确主题标题/目标并走完输入路径 |
 | `tools/runner-test.mjs` | 疾行者计时器为有限数，且会实际进入蓄力暴冲 |
 | `tools/release-guard.mjs` | 公开文本发布前专名扫描，命中即失败 |
 
@@ -198,8 +198,8 @@ npm run verify         # 完整发布验证：再覆盖专项探针、种子扫�
 
 1. **补丁锚点字符串必须带断言**。用 python 字符串替换改源码时，**两次**因为空格数不匹配导致替换静默失败（一次是坐标哈希函数没插进去、一次是敌人数据行没插进去），构建通过但运行时 `undefined`。**改完必须 assert 目标文本已存在。**
 2. **改 UI 位置会打断冒烟测试的点击坐标**。按钮从 y=320 移到 y=386 后，测试立刻报 `状态=战斗中 FAIL`。这是特性不是缺陷 —— 但记得同步更新坐标。
-3. **容器里没有浏览器**。所有验证靠 Canvas 桩 + 探针。**视觉、手感、帧率、真机触屏必须由人验证。**
-4. 打包版必须单独冒烟。Roadroller 压完的代码是 `eval` 自解压，无法注入探针，只能验"能跑 + 有绘制"。
+3. **自动发布验证使用 Canvas 桩 + 专项探针**；另已在真实 Chromium 浏览器完成桌面、竖屏与打包版的视觉/交互验收。**真机音频输出、触控延迟、safe-area 与浏览器 chrome 仍必须在物理设备上验证。**
+4. 打包版必须单独冒烟与浏览器验收。`packed-smoke` 会验证 Roadroller 自解压、主循环、精确主题文案与输入路径；真实浏览器另行验证打包产物的可见画面和交互。
 
 ## 4.2 设计与数值（每一条都曾造成严重问题）
 
@@ -233,7 +233,7 @@ npm run verify         # 完整发布验证：再覆盖专项探针、种子扫�
 Unicorns and Rainbows 已按批准方案落地：UNICORN 彩虹能源 AI 腐化机械为棱镜兽，七色碎片驱动 PRISM BREAK，BLACK UNICORN 是最终威胁。主题标题、目标文案、敌人视觉和彩虹能量反馈已纳入打包验证。
 
 1. **建 GitHub 公开仓库**：这是待完成的外部发布动作；推送可读源码、构建脚本、测试和文档
-2. **真机验收**：Chrome / Firefox / 手机各跑一次，**控制台不得有红色报错**；确认手机音频出声、竖屏自动重排、轻点能释放技能
+2. **真机验收**：Chrome / Firefox / 手机各跑一次，**控制台不得有红色报错**；确认手机音频实际出声、触控延迟可接受，safe-area / 浏览器 chrome 下无遮挡，竖屏重排和轻点技能正常
 3. **提交**：这是待完成的外部表单动作；表单开放后照 `提交清单.md` 填，**Desktop 与 Mobile 两个分类都勾**，留出截止日前缓冲
 
 ## P1 — 提分

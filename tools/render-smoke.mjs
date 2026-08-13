@@ -2,7 +2,8 @@
 import fs from 'fs'; import vm from 'node:vm';
 const code = fs.readFileSync(new URL('../build/game.js', import.meta.url), 'utf8');
 const calls = {}, texts = [], styles = new Set(), L = { w: {}, c: {} };
-let fillStyle = '', path = [], prismTargets = [];
+let fillStyle = '', strokeStyle = '', path = [], prismTargets = [], hornFills = 0, positiveBlurs = 0;
+let ringTarget = null, ringStyles = new Set();
 const cx = new Proxy({}, {
   get(t, k) { if (k in t) return t[k];
     if (k === 'measureText') return () => ({ width: 60 });
@@ -10,14 +11,22 @@ const cx = new Proxy({}, {
     if (k === 'fillText') return s => { calls[k] = (calls[k] || 0) + 1; texts.push(String(s)); };
     if (k === 'beginPath') return () => { calls[k] = (calls[k] || 0) + 1; path = []; };
     if (k === 'moveTo' || k === 'lineTo') return (x, y) => { calls[k] = (calls[k] || 0) + 1; path.push([x, y]); };
+    if (k === 'arc') return (x, y, r, a, b) => { calls[k] = (calls[k] || 0) + 1; path.push(['arc', x, y, r, a, b]); };
     if (k === 'fill') return () => {
       calls[k] = (calls[k] || 0) + 1;
+      if (path.length === 3 && path.every(p => typeof p[0] === 'number')) hornFills++;
       if (path.length === 4 && prismTargets.some(([x, y]) => path[0][0] === x && path[0][1] === y - 5 && path[1][0] === x + 4 && path[1][1] === y && path[2][0] === x && path[2][1] === y + 5 && path[3][0] === x - 4 && path[3][1] === y)) styles.add(fillStyle);
+    };
+    if (k === 'stroke') return () => {
+      calls[k] = (calls[k] || 0) + 1;
+      if (ringTarget && path.some(p => p[0] === 'arc' && p[1] === ringTarget[0] && p[2] === ringTarget[1])) ringStyles.add(strokeStyle);
     };
     return () => { calls[k] = (calls[k] || 0) + 1; }; },
   set(t, k, v) {
     t[k] = v;
     if (k === 'fillStyle' && typeof v === 'string') fillStyle = v;
+    if (k === 'strokeStyle' && typeof v === 'string') strokeStyle = v;
+    if (k === 'shadowBlur' && v > 0) positiveBlurs++;
     return true;
   }
 });
@@ -39,7 +48,7 @@ const ok = (c, m) => { c ? (pass++, console.log('  ok  ' + m)) : (fail++, consol
 const run = (l, f) => { try { f(); ok(1, l); } catch (e) { ok(0, l + ' -> ' + e.message); } };
 const frames = n => { let ts = performance.now ? 16 : 16; for (let i = 0; i < n; i++) { const cb = raf; raf = null; cb(ts); ts += 16.7; } };
 
-run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,G,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,boss:()=>spawn(2,1),prism:()=>{P.fren=1;return G=(typeof RAINBOW==="undefined"?[]:RAINBOW).map((c,i)=>({x:P.x+i*8,y:P.y,v:1,vx:0,vy:0}))}};', C));
+run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,G,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,creature:()=>typeof creature==="undefined"?null:creature,boss:()=>spawn(2,1),bossFx:p=>{RING=[];E=[];T=0;tier=1;spawnT=bossT=99;P.x=P.y=0;let e;if(!p){bossT=0;wave(0);e=E[E.length-1]}else{spawn(2,1,220,0);e=E[0];e.cast=p==1?0:4.6;e.tel=p==2?.001:0;const x=e.x,y=e.y;step(.01,0,0);return[x,y]}return[e.x,e.y]},restart:()=>reset(20260813),prism:()=>{P.fren=1;return G=(typeof RAINBOW==="undefined"?[]:RAINBOW).map((c,i)=>({x:P.x+i*8,y:P.y,v:1,vx:0,vy:0}))}};', C));
 const A = sb.__A;
 ok(!!raf, '主循环启动');
 run('开场帧', () => frames(1));
@@ -50,7 +59,18 @@ const fillBeforeHorn = calls.fill || 0;
 run('独角路径可绘制', () => A.horn()({ ty: 0, boss: 0, el: 0 }, 12));
 ok(typeof A.horn() === 'function', '公共 horn 绘制器存在');
 ok((calls.fill || 0) > fillBeforeHorn, 'horn 产生填充路径');
+const lodHornBefore = hornFills, lodBlurBefore = positiveBlurs;
+run('LOD 独角剪影', () => A.creature()({ ty: 0, boss: 0, el: 0, r: 12, x: 0, y: 0, flash: 0, ph: 0 }, 1));
+ok(hornFills > lodHornBefore, 'LOD 仍填充 horn 多边形');
+ok(positiveBlurs === lodBlurBefore, 'LOD horn 不启用 shadow blur');
 ok(A.rain().length === 7, '共享光谱包含七色');
+for (const [phase, label] of [[0, '入场'], [1, '蓄力预警'], [2, '震地冲击']]) {
+  run('BLACK UNICORN ' + label, () => { ringTarget = A.bossFx(phase); ringStyles.clear(); A.set('ST', 2); frames(1); });
+  ok(ringStyles.has('#08060f'), label + '冲击波绘制黑色棱镜核');
+  ok(A.rain().every(c => ringStyles.has(c)), label + '冲击波绘制七色边缘');
+}
+ringTarget = null;
+run('恢复开场状态', () => { A.restart(); frames(1); });
 run('点 BEGIN 进入战斗', () => L.c.pointerdown({ clientX: 640, clientY: 545, pointerId: 1 }));
 ok(A.g().ST === 1, '状态=战斗中');
 run('触发 PRISM BREAK', () => {

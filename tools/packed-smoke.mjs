@@ -31,6 +31,7 @@ const frames = n => { let ts = performance.now ? 16 : 16; for (let i = 0; i < n;
 
 run('roadroller 自解压并执行', () => vm.runInContext(code, C));
 const A = { g: () => ({ ST: 1, E: [1], kills: 1, CARDS: [] }), set: () => {} };
+ok(html.includes('<title>BLADE:13 — PRISM BREAK</title>'), '打包版浏览器标题正确');
 ok(!!raf, '主循环启动');
 run('开场帧', () => frames(1));
 ok((calls.fillText || 0) > 0, '开场有文字绘制');

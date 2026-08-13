@@ -151,9 +151,9 @@ function blade(a, al, rev) {
 }
 
 // ---- 怪物 ----
-function horn(e, r) {
+function horn(e, r, lod) {
   const c = e.boss ? C_BG : RAINBOW[e.ty % 7], l = e.boss ? 1.8 : 1;
-  ctx.save(); glow(e.boss ? '#fff' : c, e.boss ? 6 : 3);
+  ctx.save(); if (!lod) glow(e.boss ? '#fff' : c, e.boss ? 6 : 3);
   ctx.fillStyle = c; ctx.beginPath();
   ctx.moveTo(r * .12, -r * .45); ctx.lineTo(r * .7, -r * l); ctx.lineTo(r * .46, -r * .25); ctx.fill();
   if (e.boss) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); }
@@ -170,7 +170,7 @@ function creature(e, lod) {
   ctx.fillStyle = 'rgba(0,0,0,.3)';
   ctx.beginPath(); ctx.ellipse(0, r * .92, r * .8, r * .28, 0, 0, 6.283); ctx.fill();
   ctx.translate(0, bob); ctx.scale(fx, 1);
-  horn(e, r);
+  horn(e, r, lod);
 
   if (lod) {                                       // 密集时降级: 剪影+眼睛
     ctx.fillStyle = col;

@@ -6,6 +6,7 @@ let hurtF = 0, lvlF = 0, shX = 0, shY = 0, flashF = 0;
 let HALF = [], DEC = [], zoom = 1, uiT = 0, cardT = 0;                        // 尸块 / 地面血渍 / 镜头推近
 
 const ring = (x, y, r, mr, t, c, w) => { RING.push({ x, y, r, mr, t, mt: t, c, w: w || 3 }); if (RING.length > 64) RING.shift(); };
+const prismRing = (x, y, r, mr, t, w) => { ring(x, y, r, mr, t, C_BG, w + 6); ring(x, y, r, mr, t, RAINBOW, w); };
 const ghost = (x, y, f) => { GH.push({ x, y, f, t: .26 }); if (GH.length > 26) GH.shift(); };
 const hs = v => { HS = Math.min(.15, HS + v); };            // 打击停顿(上限防卡死)
 const kick = (x, y, v) => {                                  // 定向震屏: 从冲击点推开
