@@ -216,7 +216,7 @@ function drawUI() {
   if (P.dash) speedLines();
   screenFX();
   hud();
-  if (ST == 0) center('BLADE:13', 'No tutorial. No warm-up. They are already here.', '', 'JACK IN');
+  if (ST == 0) center('BLADE:13 — PRISM BREAK', 'SEVER THE UNICORN NETWORK.', '', 'JACK IN');
   if (ST == 2) cardScreen();
   if (ST == 3) center('FLATLINED', 'Uptime ' + mmss(T) + '   Level ' + P.lv + '   Kills ' + kills, 'Best ' + mmss(best), 'REBOOT');
 }
@@ -317,7 +317,7 @@ function hud() {
   ctx.fillStyle = '#000a'; ctx.fillRect(14, 45, 260, 5);
   ctx.fillStyle = P.fren > 0 ? C_MAG : C_AMB; ctx.fillRect(14, 45, 260 * cl(P.fren > 0 ? 1 : P.rage / P.rmax, 0, 1), 5);
   ctx.font = '10px monospace'; ctx.fillStyle = P.fren > 0 ? C_MAG : '#6a6480';
-  ctx.fillText(P.fren > 0 ? 'OVERCLOCK ' + P.fren.toFixed(1) : P.rage >= P.rmax ? 'OVERCLOCK READY' : 'OVERCLOCK', 282, 50);
+  ctx.fillText(P.fren > 0 ? 'PRISM BREAK ' + P.fren.toFixed(1) : P.rage >= P.rmax ? 'PRISM BREAK READY' : 'PRISM BREAK', 282, 50);
   // 时间 / 击杀
   ctx.textAlign = 'right'; ctx.font = '22px monospace'; ctx.fillStyle = '#fff';
   ctx.fillText(mmss(T), W - 16, 32);
@@ -344,7 +344,7 @@ function hud() {
     rr(ox2, oy2, 116, 44, 6); ctx.fillStyle = 'rgba(248,120,248,.2)'; ctx.fill();
     ctx.strokeStyle = C_MAG; ctx.lineWidth = 2; ctx.stroke();
     ctx.fillStyle = '#fff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(TOUCH ? 'OVERCLOCK' : 'OVERCLOCK [F]', ox2 + 58, oy2 + 27);
+    ctx.fillText(TOUCH ? 'PRISM BREAK' : 'PRISM BREAK [F]', ox2 + 58, oy2 + 27);
     ctx.globalAlpha = 1; ctx.textAlign = 'left';
     BTN.push({ x: ox2, y: oy2, w: 116, h: 44, a: 'oc' });
   }
@@ -381,7 +381,7 @@ function howto(y) {
 function center(t1, t2, t3, btn) {
   ctx.fillStyle = 'rgba(6,5,12,.86)'; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
-  ctx.font = 'bold 46px monospace';
+  ctx.font = 'bold ' + (t1.length > 14 ? 32 : 46) + 'px monospace';
   ctx.fillStyle = C_MAG; ctx.fillText(t1, CX - 3 + Math.sin(T * 9) * 1.6, 210);
   ctx.fillStyle = C_ICE; ctx.fillText(t1, CX + 3 - Math.sin(T * 9) * 1.6, 210);
   glow(C_AMB, 14); ctx.fillStyle = '#fff'; ctx.fillText(t1, CX, 210); noglow();

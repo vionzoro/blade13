@@ -24,6 +24,7 @@ function spawn(ty, boss, ax, ay) {
     sp: b.sp * (1 + cl(T / 105, 0, 2.7)) * (boss ? .6 : el ? 1.22 : 1), dm: b.dm * (1 + Math.pow(T / 70, 1.6) * 1.2) * (boss ? 1.25 : el ? 1.35 : 1),
     r: b.r * (boss ? 2.6 : el ? 1.2 : 1), flash: 0, kx: 0, ky: 0, atk: 0, bc: 0, bt: 0, sh: 1.6 + rnd(), ph: rnd() * 6.28, cast: 4, tel: 0
   });
+  if (boss) { mile = 'BLACK UNICORN'; mileT = 1.6; }
 }
 
 function pickTy() {

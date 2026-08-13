@@ -8,6 +8,7 @@ let TOUCH = 0;
 const C_AMB = '#f8b800', C_ICE = '#3cbcfc', C_RED = '#f83800', C_XP = '#58f898';
 const C_MAG = '#f878f8', C_CHR = '#bcbcbc';            // 品红霓虹 / 铬合金
 const C_BG = '#08060f', C_G1 = '#100c22', C_G2 = '#17103c';
+const RAINBOW = [C_RED, '#fc9838', C_AMB, C_XP, C_ICE, '#6844fc', C_MAG];
 
 let _s = 1;
 const srnd = s => { _s = (s >>> 0) || 1; };
