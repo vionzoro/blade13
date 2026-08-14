@@ -1,4 +1,5 @@
 // 姿态检查: 收势=逆手(刀身在身后), 挥砍=顺手(刀身在身前), 围巾始终背向移动
+import assert from 'node:assert/strict';
 import fs from 'fs'; import vm from 'node:vm';
 const code = fs.readFileSync(new URL('../build/game.js', import.meta.url), 'utf8');
 const seg = [];              // 记录刀身/围巾的线段终点
@@ -20,10 +21,13 @@ const sb = { document: { getElementById: () => cvs, createElement: () => cvs }, 
   addEventListener: (n, f) => { L.w[n] = f; }, requestAnimationFrame: f => { raf = f; return 1; },
   setTimeout: f => { try { f(); } catch (e) {} return 1; }, localStorage: {}, console };
 sb.window = sb; sb.globalThis = sb;
-vm.runInContext(code + ';globalThis.__A={set:(o)=>{Object.assign(P,o)},g:()=>({P})};', vm.createContext(sb));
+vm.runInContext(code + ';globalThis.__A={set:(o)=>{Object.assign(P,o)},blades:s=>{P.swing=s;let n=0,o=blade;blade=()=>n++;hero();blade=o;return n},g:()=>({P})};', vm.createContext(sb));
 const A = sb.__A;
 const f = n => { for (let i = 0; i < n; i++) { const cb = raf; raf = null; cb(16 * i + 16); } };
 f(1); L.c.pointerdown({ clientX: 480, clientY: 343, pointerId: 1 }); f(2);
+
+assert.equal(A.blades(0), 1, 'idle hero must draw exactly one sword');
+assert.equal(A.blades(.06), 1, 'swinging hero must draw exactly one sword');
 
 // 收势(不挥砍): 面朝 +x, 刀身应落在身后(x<0)
 A.set({ swing: 0, face: 0, still: 1, md: 0 });

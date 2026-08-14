@@ -8,7 +8,6 @@ function hero() {
   const fx = Math.cos(P.face) < 0 ? -1 : 1;
   const run = P.still < .06, t = T * 11;
   const bob = run ? Math.sin(t) * 1.6 : Math.sin(T * 2.6) * .9;
-  const skin = inv ? '#fff' : '#f0c090';
   const jkt = inv ? '#fff' : oc ? '#fcfcfc' : C_AMB;      // 霓虹黄夹克
   const chr = inv ? '#fff' : C_CHR;                       // 义体铬
 
@@ -34,6 +33,8 @@ function hero() {
   ctx.moveTo(4, 5); ctx.lineTo(8 - ls, 15); ctx.stroke();
   ctx.strokeStyle = C_ICE; ctx.lineWidth = 1;             // 关节冷光
   ctx.beginPath(); ctx.moveTo(-8, 10); ctx.lineTo(-6, 10); ctx.moveTo(6, 10); ctx.lineTo(8, 10); ctx.stroke();
+  ctx.fillStyle = '#fff';                                 // 马蹄
+  ctx.fillRect(-12 + ls, 13, 7, 3); ctx.fillRect(5 - ls, 13, 7, 3);
   // 风衣下摆(跑动外翻)
   ctx.fillStyle = inv ? '#fff' : '#2a2438';
   ctx.beginPath();
@@ -53,55 +54,28 @@ function hero() {
   else { ctx.beginPath(); ctx.moveTo(2, -8 + bob); ctx.lineTo(-2, 2 + bob); ctx.stroke(); }  // 逆手收刀
   ctx.strokeStyle = chr; ctx.lineWidth = 3;               // 前伸的空手(忍者起手式)
   ctx.beginPath(); ctx.moveTo(-3, -8 + bob); ctx.lineTo(9, -10 + bob); ctx.stroke();
-  // 头
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.arc(0, -16 + bob, 6, 0, 6.283); ctx.fill();
-  if (oc) {                                              // 超频起势: 系上头巾, 尾带随风
-    ctx.fillStyle = '#1a1626'; ctx.fillRect(-7, -22 + bob, 14, 3.4);
-    ctx.strokeStyle = '#1a1626'; ctx.lineWidth = 2.4;
-    const bw2 = Math.sin(T * 9) * 4;
-    ctx.beginPath(); ctx.moveTo(-6, -21 + bob);
-    ctx.quadraticCurveTo(-16, -18 + bob + bw2, -22, -9 + bob); ctx.stroke();
+  // 🦄 表情式侧脸: 彩虹鬃毛、金角、长马嘴与大眼
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = inv ? '#fff' : RAINBOW[(i + 4) % 7]; ctx.beginPath();
+    ctx.moveTo(-7, -25 + i * 4 + bob); ctx.lineTo(-16, -22 + i * 5 + bob); ctx.lineTo(-8, -17 + i * 4 + bob); ctx.fill();
   }
-  // 尖刺发
-  ctx.fillStyle = inv ? '#fff' : '#e04040';
-  for (let i = -2; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * 2.6 - 1.4, -20 + bob); ctx.lineTo(i * 2.6 + .6, -27 - Math.abs(i) * -1.4 + bob);
-    ctx.lineTo(i * 2.6 + 1.8, -20 + bob); ctx.fill();
-  }
-  // 口中横刀: 第三把刃
-  ctx.strokeStyle = '#2a2438'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(-9, -12 + bob); ctx.lineTo(11, -12.6 + bob); ctx.stroke();
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4;
-  ctx.beginPath(); ctx.moveTo(-8, -12.8 + bob); ctx.lineTo(11, -13.4 + bob); ctx.stroke();
-  ctx.fillStyle = '#8c3b2a'; ctx.fillRect(-11, -13.6 + bob, 4, 3);      // 刀柄缠绳
-  // 左眼旧伤
-  ctx.strokeStyle = '#a8523c'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(-6, -21 + bob); ctx.lineTo(-3, -14 + bob); ctx.stroke();
-  // 义眼护目条(赛博的招牌)
-  glow(C_ICE, 10);
-  ctx.fillStyle = C_ICE; ctx.fillRect(-6, -17.6 + bob, 12, 2.4);
-  noglow();
-  ctx.fillStyle = C_MAG; ctx.fillRect(3, -17.6 + bob, 3, 2.4);       // 右眼品红
-  // 颈后神经接口
-  ctx.fillStyle = C_ICE;
-  ctx.fillRect(-7, -13 + bob, 1.6, 1.6); ctx.fillRect(-7, -10 + bob, 1.6, 1.6);
+  ctx.fillStyle = inv ? '#fff' : C_AMB;
+  ctx.beginPath(); ctx.moveTo(1, -23 + bob); ctx.lineTo(8, -36 + bob); ctx.lineTo(7, -21 + bob); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(-6, -23 + bob); ctx.lineTo(-11, -30 + bob); ctx.lineTo(0, -23 + bob); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-9, -24 + bob); ctx.quadraticCurveTo(5, -28 + bob, 10, -20 + bob);
+  ctx.lineTo(16, -17 + bob); ctx.quadraticCurveTo(19, -12 + bob, 12, -10 + bob);
+  ctx.lineTo(0, -9 + bob); ctx.quadraticCurveTo(-11, -11 + bob, -9, -24 + bob); ctx.fill();
+  ctx.fillStyle = '#292138'; ctx.beginPath(); ctx.ellipse(2, -20 + bob, 2.7, 3.4, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(1, -21 + bob, .9, 0, 6.283); ctx.fill();
+  ctx.fillStyle = C_MAG; ctx.fillRect(13, -15 + bob, 1.2, 1.2);
   ctx.restore();
 
-  // 单分子刃
-  if (P.swing > 0) {                                     // 三刀横扫: 主刀 + 副刀 + 口中刀各走一条弧
+  // 单分子刃: 任何姿态只保留主手刀
+  if (P.swing > 0) {
     const sw = 1 - P.swing / .12;
-    const sa = P.face - 1.45 + sw * 2.9;
-    for (let i = 1; i < 4; i++) blade(sa - i * .3, .16 * (4 - i), 0);
-    if (oc) for (let i = -1; i < 2; i += 2) blade(sa + i * .95, .3, 0);   // 超频: 鬼形分身刀
-    blade(sa, 1, 0);
-    blade(sa - .52, .8, 0);
-    blade(sa + .44, .62, 0);
-  } else {                                               // 收势: 双刀逆手贴臂
-    blade(P.face + 2.5, 1, 1);
-    blade(P.face + 2.02, .72, 1);
-  }
+    blade(P.face - 1.45 + sw * 2.9, 1, 0);
+  } else blade(P.face + 2.5, 1, 1);                      // 收势: 单刀逆手贴臂
   ctx.restore();
 }
 
