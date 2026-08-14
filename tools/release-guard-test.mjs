@@ -22,6 +22,16 @@ try {
   assert.equal(blockedRun.status, 1, 'sensitive third-party name must block release');
   assert.match(blockedRun.stdout + blockedRun.stderr, /blocked\.md:1/, 'guard must identify the file and line');
 
+  const accountTerm = String.fromCharCode(90, 111, 114, 111);
+  const accountUrl = path.join(temp, 'account-url.md');
+  const standaloneName = path.join(temp, 'standalone-name.md');
+  fs.writeFileSync(accountUrl, `https://github.com/vion${accountTerm.toLowerCase()}/blade13\n`);
+  fs.writeFileSync(standaloneName, `Original hero, no ${accountTerm} references.\n`);
+  const accountUrlRun = spawnSync(process.execPath, [guard, accountUrl], { encoding: 'utf8' });
+  const standaloneNameRun = spawnSync(process.execPath, [guard, standaloneName], { encoding: 'utf8' });
+  assert.equal(accountUrlRun.status, 0, `blocked term inside an account name must not reject its URL:\n${accountUrlRun.stdout}${accountUrlRun.stderr}`);
+  assert.equal(standaloneNameRun.status, 1, 'standalone sensitive third-party name must remain blocked');
+
   const publicRoot = path.join(temp, 'public-root');
   fs.mkdirSync(path.join(publicRoot, '.superpowers'), { recursive: true });
   fs.writeFileSync(path.join(publicRoot, 'README.md'), 'Original chibi unicorn game.\n');

@@ -14,6 +14,12 @@ const ENCODED_TERMS = [
 ];
 const TERMS = ENCODED_TERMS.map(term => Buffer.from(term, 'base64').toString('utf8').toLocaleLowerCase());
 
+function containsBlockedTerm(text, term) {
+  if (!/^[a-z0-9]+(?: [a-z0-9]+)*$/.test(term)) return text.includes(term);
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?=$|[^a-z0-9])`).test(text);
+}
+
 function collect(target, files) {
   const stat = fs.statSync(target);
   if (stat.isFile()) {
@@ -34,7 +40,7 @@ export function scanPaths(targets) {
     const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
     for (let line = 0; line < lines.length; line++) {
       const text = lines[line].toLocaleLowerCase();
-      if (TERMS.some(term => text.includes(term))) hits.push({ file, line: line + 1 });
+      if (TERMS.some(term => containsBlockedTerm(text, term))) hits.push({ file, line: line + 1 });
     }
   }
   return hits;
