@@ -5,6 +5,7 @@ import re, sys, subprocess, pathlib, zipfile
 ROOT = pathlib.Path(__file__).resolve().parent
 SRC, BUILD, DIST = ROOT / 'src', ROOT / 'build', ROOT / 'build' / 'dist'
 LIMIT = 13312
+TARGET = 13100
 BIN = ROOT / 'node_modules' / '.bin'
 TERSER, ROADROLLER = BIN / 'terser', BIN / 'roadroller'
 ROADROLLER_ARGS = ['-Zab32', '-Zlr1500', '-Zpr14', '-S0,1,2,3,7,13,25,42,50,70,297,404']
@@ -62,8 +63,10 @@ def main():
     print(f'terser    {len(mn):>7,} B')
     print(f'roadroller{len(packed) if packed else 0:>7,} B  {"(采用)" if use_pack else "(未采用)"}')
     print(f'zip       {z:>7,} B   剩余 {LIMIT - z:>6,} B / {LIMIT}')
+    print(f'交付余量  {TARGET - z:>7,} B / {TARGET}')
     print('预算占用  %.1f%%' % (z * 100 / LIMIT))
     if z > LIMIT: print('!! 超出 13KB'); sys.exit(1)
+    if z > TARGET: print(f'!! 超出交付目标 {TARGET} B'); sys.exit(1)
 
 if __name__ == '__main__':
     main()
