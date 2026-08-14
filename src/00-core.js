@@ -38,9 +38,9 @@ function reset(seed) {
   };
   E = []; G = []; PR = []; FX = []; DN = []; SL = [];
   cam = { x: 0, y: 0 };
-  T = 0; spawnT = .3; bossT = 40; ST = 0; CARDS = []; shake = 0; kills = 0; tier = 1;
+  T = 0; spawnT = .3; bossT = 32; ST = 0; CARDS = []; shake = 0; kills = 0; tier = 1;
   clearJuice();
   own = {};
-  for (let i = 0; i < 18; i++) spawn(ri(2));            // 开局即满屏: 这个类型不需要热身
+  for (let i = 0; i < 22; i++) spawn(ri(2));            // 开局即满屏: 这个类型不需要热身
 }
 let own = {};

@@ -29,13 +29,13 @@ function spawn(ty, boss, ax, ay) {
 
 function pickTy() {
   const r = rnd();
-  return T > 40 && r > .95 ? 6 : T > 50 && r > .85 ? 5 : T > 36 && r > .74 ? 3 : T > 24 && r > .63 ? 4
-    : T > 15 && r > .5 ? 2 : T > 6 && r > .3 ? 1 : 0;
+  return T > 32 && r > .95 ? 6 : T > 40 && r > .85 ? 5 : T > 29 && r > .74 ? 3 : T > 19 && r > .63 ? 4
+    : T > 12 && r > .5 ? 2 : T > 4 && r > .3 ? 1 : 0;
 }
 
 function wave(dt) {
-  // 威胁等级: 每 28 秒跳一级, 跳级瞬间从一个方向压来一波涌潮
-  const nt = 1 + (T / 28 | 0);
+  // 威胁等级: 每 22 秒跳一级, 跳级瞬间从一个方向压来一波涌潮
+  const nt = 1 + (T / 22 | 0);
   if (nt > tier) {
     tier = nt;
     mile = 'THREAT ' + tier; mileT = 1.6; flashF = .55; sBoss();
@@ -47,12 +47,12 @@ function wave(dt) {
   }
   spawnT -= dt;
   if (spawnT <= 0) {
-    spawnT = Math.max(.14, .8 - T / 190);
-    let n = 2 + (T / 26 | 0);
+    spawnT = Math.max(.12, .68 - T / 170);
+    let n = 2 + (T / 22 | 0);
     for (let i = 0; i < n; i++) if (E.length < 460) spawn(pickTy());
   }
   bossT -= dt;
-  if (bossT <= 0) { bossT = 32; spawn(2, 1); shake = 9; sBoss(); const b = E[E.length - 1]; if (b) prismRing(b.x, b.y, 10, 220, .8, 4); }
+  if (bossT <= 0) { bossT = 28; spawn(2, 1); shake = 9; sBoss(); const b = E[E.length - 1]; if (b) prismRing(b.x, b.y, 10, 220, .8, 4); }
 }
 
 // ---- 攻击: 扇形横扫, 同时命中范围内所有敌人 ----
