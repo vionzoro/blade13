@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const TEXT_EXTENSIONS = new Set(['.html', '.js', '.json', '.md', '.mjs', '.py', '.sh']);
-const EXCLUDED_DIRECTORIES = new Set(['build', 'docs', 'node_modules']);
+const EXCLUDED_DIRECTORIES = new Set(['build', 'docs', 'node_modules', '.superpowers']);
 const ENCODED_TERMS = [
   'TWFzdGVyIFlp', 'V3VqdQ==', 'SGlnaGxhbmRlcg==', 'QWxwaGEgU3RyaWtl', 'TWVkaXRhdGU=',
   'Q3liZXJwdW5rIDIwNzc=', 'RWRnZXJ1bm5lcg==', 'U2FuZGV2aXN0YW4=', 'TmlnaHQgQ2l0eQ==',

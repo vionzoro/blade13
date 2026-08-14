@@ -21,6 +21,13 @@ try {
   const blockedRun = spawnSync(process.execPath, [guard, blocked], { encoding: 'utf8' });
   assert.equal(blockedRun.status, 1, 'sensitive third-party name must block release');
   assert.match(blockedRun.stdout + blockedRun.stderr, /blocked\.md:1/, 'guard must identify the file and line');
+
+  const publicRoot = path.join(temp, 'public-root');
+  fs.mkdirSync(path.join(publicRoot, '.superpowers'), { recursive: true });
+  fs.writeFileSync(path.join(publicRoot, 'README.md'), 'Original chibi unicorn game.\n');
+  fs.writeFileSync(path.join(publicRoot, '.superpowers', 'brainstorm.md'), String.fromCharCode(77, 97, 115, 116, 101, 114, 32, 89, 105));
+  const ignoredCacheRun = spawnSync(process.execPath, [guard, publicRoot], { encoding: 'utf8' });
+  assert.equal(ignoredCacheRun.status, 0, `ignored brainstorm cache must not block public release text:\n${ignoredCacheRun.stdout}${ignoredCacheRun.stderr}`);
   console.log('release guard accepts clean text and rejects sensitive names');
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
