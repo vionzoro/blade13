@@ -100,7 +100,7 @@ function dmgE(e, base, nx, ny, big) {
 function overclock() {                                   // ① 由玩家掐时机释放
   if (P.rage < P.rmax || P.fren > 0) return 0;
   P.rage = 0; P.fren = 5; P.rmax += 3;
-  shake = 8; hs(.12); flashF = 1; sFrenzy(); ring(P.x, P.y, 20, 300, .5, C_AMB, 5);
+  shake = 8; hs(.12); flashF = 1; sFrenzy(); prismRing(P.x, P.y, 20, 300, .5, 5);
   return 1;
 }
 
@@ -146,7 +146,7 @@ function dash() {
   P.dchg -= 1; P.dlock = P.fren > 0 ? .6 : .85;   // 硬锁远长于无敌窗口
   P.inv = .35;                                   // 无敌固定, 不随目标数膨胀
   shake = Math.max(shake, 4); sDash();
-  ring(P.x, P.y, 8, 90, .22, C_ICE, 3);
+  prismRing(P.x, P.y, 8, 90, .22, 3);
 }
 function dashTick(dt) {
   const d = P.dash; if (!d) return;

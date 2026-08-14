@@ -23,6 +23,7 @@ const sb = { document: { getElementById: () => cvs, createElement: () => cvs }, 
 sb.window = sb; sb.globalThis = sb;
 vm.runInContext(code + ';globalThis.__A={set:(o)=>{Object.assign(P,o)},blades:s=>{P.swing=s;let n=0,o=blade;blade=()=>n++;hero();blade=o;return n},g:()=>({P})};', vm.createContext(sb));
 const A = sb.__A;
+const spectrum = new Set(['#f83800', '#fc9838', '#f8b800', '#58f898', '#3cbcfc', '#6844fc', '#f878f8']);
 const f = n => { for (let i = 0; i < n; i++) { const cb = raf; raf = null; cb(16 * i + 16); } };
 f(1); L.c.pointerdown({ clientX: 480, clientY: 343, pointerId: 1 }); f(2);
 
@@ -32,17 +33,20 @@ assert.equal(A.blades(.06), 1, 'swinging hero must draw exactly one sword');
 // 收势(不挥砍): 面朝 +x, 刀身应落在身后(x<0)
 A.set({ swing: 0, face: 0, still: 1, md: 0 });
 seg.length = 0; f(1);
-const mag = seg.filter(s => s.s === '#f878f8');
+const mag = seg.filter(s => spectrum.has(s.s) && s.y > 0);
+assert.ok(mag.length && mag.every(s => s.x < 0), 'idle sword must point behind the hero');
 console.log('收势 逆手刀身终点 x =', mag.length ? mag.map(s => s.x.toFixed(0)).join(',') : '(未找到)', '  → 负值=贴臂向后 ✓');
 
 // 挥砍中: 刀身应甩到身前
 A.set({ swing: .06, face: 0 });
 seg.length = 0; f(1);
-const mag2 = seg.filter(s => s.s === '#f878f8');
+const mag2 = seg.filter(s => spectrum.has(s.s) && s.x > 20);
+assert.ok(mag2.length && mag2.every(s => s.x > 0), 'swinging sword must point in front of the hero');
 console.log('挥砍 刀身终点 x =', mag2.length ? mag2.map(s => s.x.toFixed(0)).join(',') : '(未找到)', '  → 正值=甩向身前 ✓');
 
 // 围巾: 向右跑时应飘向左
 A.set({ swing: 0, still: 0, md: 0 });
 seg.length = 0; f(1);
 const sc = seg.filter(s => s.s === '#c0429c' || (s.s === '#f878f8' && s.y < 0));
+assert.ok(sc.length && sc.every(s => s.x < 0), 'scarf must trail behind rightward movement');
 console.log('围巾段终点 x =', sc.map(s => s.x.toFixed(0)).join(','), '  → 负值=拖在身后 ✓');

@@ -97,7 +97,7 @@ function scarf() {
   ctx.globalAlpha = 1;
 }
 function blade(a, al, rev) {
-  const bc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_MAG;
+  const bc = RAINBOW[(T * 12 | 0) % 7];
   ctx.save(); ctx.rotate(a); ctx.globalAlpha = al;
   ctx.lineCap = 'round';
   if (rev) {                                             // 逆手: 刀身贴前臂向后

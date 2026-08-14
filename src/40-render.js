@@ -139,7 +139,7 @@ function drawWorld() {
   // 刀光: 实心月牙 + 发光锋线
   for (const s of SL) {
     const k = s.t / s.mt, e = 1 - k;
-    const pc = P.fren > 0 ? RAINBOW[(((T * 12 + s.a * 3) | 0) & 255) % 7] : C_ICE;
+    const pc = RAINBOW[(((T * 12 + s.a * 3) | 0) & 255) % 7];
     const r0 = s.r * (.42 + e * .34), r1 = s.r * (1.04 + e * .16);
     const gd = ctx.createRadialGradient(s.x, s.y, r0, s.x, s.y, r1);
     gd.addColorStop(0, 'rgba(62,224,247,0)');
@@ -170,7 +170,7 @@ function drawWorld() {
   // 突进残影
   for (const g of GH) {
     const k = g.t / .26;
-    const pc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_ICE;
+    const pc = RAINBOW[(T * 12 | 0) % 7];
     ctx.globalAlpha = k * .5;
     ctx.fillStyle = pc;
     ctx.beginPath(); ctx.ellipse(g.x, g.y - 4, 9, 15, 0, 0, 6.283); ctx.fill();

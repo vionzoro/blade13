@@ -1,7 +1,7 @@
 // BLADE:13 渲染冒烟: canvas 桩 Proxy 化, 覆盖开场/战斗/选卡/死亡四态与输入路径
 import fs from 'fs'; import vm from 'node:vm';
 const code = fs.readFileSync(new URL('../build/game.js', import.meta.url), 'utf8');
-const calls = {}, texts = [], styles = new Set(), L = { w: {}, c: {} };
+const calls = {}, texts = [], styles = new Set(), playerStrokeStyles = new Set(), L = { w: {}, c: {} };
 let fillStyle = '', strokeStyle = '', path = [], prismTargets = [], hornFills = 0, positiveBlurs = 0;
 let ringTarget = null, ringStyles = new Set();
 const cx = new Proxy({}, {
@@ -25,7 +25,7 @@ const cx = new Proxy({}, {
   set(t, k, v) {
     t[k] = v;
     if (k === 'fillStyle' && typeof v === 'string') fillStyle = v;
-    if (k === 'strokeStyle' && typeof v === 'string') strokeStyle = v;
+    if (k === 'strokeStyle' && typeof v === 'string') { strokeStyle = v; playerStrokeStyles.add(v); }
     if (k === 'shadowBlur' && v > 0) positiveBlurs++;
     return true;
   }
@@ -48,7 +48,7 @@ const ok = (c, m) => { c ? (pass++, console.log('  ok  ' + m)) : (fail++, consol
 const run = (l, f) => { try { f(); ok(1, l); } catch (e) { ok(0, l + ' -> ' + e.message); } };
 const frames = n => { let ts = performance.now ? 16 : 16; for (let i = 0; i < n; i++) { const cb = raf; raf = null; cb(ts); ts += 16.7; } };
 
-run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,G,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,creature:()=>typeof creature==="undefined"?null:creature,boss:()=>spawn(2,1),bossFx:p=>{RING=[];E=[];T=0;tier=1;spawnT=bossT=99;P.x=P.y=0;let e;if(!p){bossT=0;wave(0);e=E[E.length-1]}else{spawn(2,1,220,0);e=E[0];e.cast=p==1?0:4.6;e.tel=p==2?.001:0;const x=e.x,y=e.y;step(.01,0,0);return[x,y]}return[e.x,e.y]},restart:()=>reset(20260813),prism:()=>{P.fren=1;return G=(typeof RAINBOW==="undefined"?[]:RAINBOW).map((c,i)=>({x:P.x+i*8,y:P.y,v:1,vx:0,vy:0}))}};', C));
+run('装载无异常', () => vm.runInContext(code + ';globalThis.__A={g:()=>({ST,P,E,G,CARDS,kills}),set:(k,v)=>{if(k==="ST")ST=v},rain:()=>typeof RAINBOW==="undefined"?[]:RAINBOW,horn:()=>typeof horn==="undefined"?null:horn,creature:()=>typeof creature==="undefined"?null:creature,boss:()=>spawn(2,1),bossFx:p=>{RING=[];E=[];T=0;tier=1;spawnT=bossT=99;P.x=P.y=0;let e;if(!p){bossT=0;wave(0);e=E[E.length-1]}else{spawn(2,1,220,0);e=E[0];e.cast=p==1?0:4.6;e.tel=p==2?.001:0;const x=e.x,y=e.y;step(.01,0,0);return[x,y]}return[e.x,e.y]},restart:()=>reset(20260813),prism:()=>{P.fren=1;return G=(typeof RAINBOW==="undefined"?[]:RAINBOW).map((c,i)=>({x:P.x+i*8,y:P.y,v:1,vx:0,vy:0}))},rainAction:a=>{RING=[];if(a==="blink"){E=[];spawn(0,0,P.x+80,P.y);P.dchg=1;P.dlock=0;P.dash=null;dash()}else{P.rage=P.rmax;P.fren=0;overclock()}return RING.some(r=>r.c===RAINBOW)},bladeAt:t=>{T=t;P.fren=0;blade(0,1,0)}};', C));
 const A = sb.__A;
 ok(!!raf, '主循环启动');
 run('开场帧', () => frames(1));
@@ -64,6 +64,11 @@ run('LOD 独角剪影', () => A.creature()({ ty: 0, boss: 0, el: 0, r: 12, x: 0,
 ok(hornFills > lodHornBefore, 'LOD 仍填充 horn 多边形');
 ok(positiveBlurs === lodBlurBefore, 'LOD horn 不启用 shadow blur');
 ok(A.rain().length === 7, '共享光谱包含七色');
+ok(A.rainAction('blink'), 'BLINK 释放七色棱镜环');
+ok(A.rainAction('prism'), 'PRISM BREAK 释放七色棱镜环');
+playerStrokeStyles.clear();
+for (let i = 0; i < 7; i++) A.bladeAt(i / 12);
+ok(A.rain().filter(c => playerStrokeStyles.has(c)).length >= 2, '普通刀光轮换至少两种彩虹色');
 for (const [phase, label] of [[0, '入场'], [1, '蓄力预警'], [2, '震地冲击']]) {
   run('BLACK UNICORN ' + label, () => { ringTarget = A.bossFx(phase); ringStyles.clear(); A.set('ST', 2); frames(1); });
   ok(ringStyles.has('#08060f'), label + '冲击波绘制黑色棱镜核');
