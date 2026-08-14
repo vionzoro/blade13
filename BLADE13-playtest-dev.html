@@ -38,10 +38,10 @@ function reset(seed) {
   };
   E = []; G = []; PR = []; FX = []; DN = []; SL = [];
   cam = { x: 0, y: 0 };
-  T = 0; spawnT = .3; bossT = 40; ST = 0; CARDS = []; shake = 0; kills = 0; tier = 1;
+  T = 0; spawnT = .3; bossT = 32; ST = 0; CARDS = []; shake = 0; kills = 0; tier = 1;
   clearJuice();
   own = {};
-  for (let i = 0; i < 18; i++) spawn(ri(2));            // 开局即满屏: 这个类型不需要热身
+  for (let i = 0; i < 22; i++) spawn(ri(2));            // 开局即满屏: 这个类型不需要热身
 }
 let own = {};
 
@@ -143,13 +143,13 @@ function spawn(ty, boss, ax, ay) {
 
 function pickTy() {
   const r = rnd();
-  return T > 40 && r > .95 ? 6 : T > 50 && r > .85 ? 5 : T > 36 && r > .74 ? 3 : T > 24 && r > .63 ? 4
-    : T > 15 && r > .5 ? 2 : T > 6 && r > .3 ? 1 : 0;
+  return T > 32 && r > .95 ? 6 : T > 40 && r > .85 ? 5 : T > 29 && r > .74 ? 3 : T > 19 && r > .63 ? 4
+    : T > 12 && r > .5 ? 2 : T > 4 && r > .3 ? 1 : 0;
 }
 
 function wave(dt) {
-  // 威胁等级: 每 28 秒跳一级, 跳级瞬间从一个方向压来一波涌潮
-  const nt = 1 + (T / 28 | 0);
+  // 威胁等级: 每 22 秒跳一级, 跳级瞬间从一个方向压来一波涌潮
+  const nt = 1 + (T / 22 | 0);
   if (nt > tier) {
     tier = nt;
     mile = 'THREAT ' + tier; mileT = 1.6; flashF = .55; sBoss();
@@ -161,12 +161,12 @@ function wave(dt) {
   }
   spawnT -= dt;
   if (spawnT <= 0) {
-    spawnT = Math.max(.14, .8 - T / 190);
-    let n = 2 + (T / 26 | 0);
+    spawnT = Math.max(.12, .68 - T / 170);
+    let n = 2 + (T / 22 | 0);
     for (let i = 0; i < n; i++) if (E.length < 460) spawn(pickTy());
   }
   bossT -= dt;
-  if (bossT <= 0) { bossT = 32; spawn(2, 1); shake = 9; sBoss(); const b = E[E.length - 1]; if (b) prismRing(b.x, b.y, 10, 220, .8, 4); }
+  if (bossT <= 0) { bossT = 28; spawn(2, 1); shake = 9; sBoss(); const b = E[E.length - 1]; if (b) prismRing(b.x, b.y, 10, 220, .8, 4); }
 }
 
 // ---- 攻击: 扇形横扫, 同时命中范围内所有敌人 ----
@@ -214,7 +214,7 @@ function dmgE(e, base, nx, ny, big) {
 function overclock() {                                   // ① 由玩家掐时机释放
   if (P.rage < P.rmax || P.fren > 0) return 0;
   P.rage = 0; P.fren = 5; P.rmax += 3;
-  shake = 8; hs(.12); flashF = 1; sFrenzy(); ring(P.x, P.y, 20, 300, .5, C_AMB, 5);
+  shake = 8; hs(.12); flashF = 1; sFrenzy(); prismRing(P.x, P.y, 20, 300, .5, 5);
   return 1;
 }
 
@@ -260,7 +260,7 @@ function dash() {
   P.dchg -= 1; P.dlock = P.fren > 0 ? .6 : .85;   // 硬锁远长于无敌窗口
   P.inv = .35;                                   // 无敌固定, 不随目标数膨胀
   shake = Math.max(shake, 4); sDash();
-  ring(P.x, P.y, 8, 90, .22, C_ICE, 3);
+  prismRing(P.x, P.y, 8, 90, .22, 3);
 }
 function dashTick(dt) {
   const d = P.dash; if (!d) return;
@@ -609,7 +609,7 @@ function drawWorld() {
   // 刀光: 实心月牙 + 发光锋线
   for (const s of SL) {
     const k = s.t / s.mt, e = 1 - k;
-    const pc = P.fren > 0 ? RAINBOW[(((T * 12 + s.a * 3) | 0) & 255) % 7] : C_ICE;
+    const pc = RAINBOW[(((T * 12 + s.a * 3) | 0) & 255) % 7];
     const r0 = s.r * (.42 + e * .34), r1 = s.r * (1.04 + e * .16);
     const gd = ctx.createRadialGradient(s.x, s.y, r0, s.x, s.y, r1);
     gd.addColorStop(0, 'rgba(62,224,247,0)');
@@ -640,7 +640,7 @@ function drawWorld() {
   // 突进残影
   for (const g of GH) {
     const k = g.t / .26;
-    const pc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_ICE;
+    const pc = RAINBOW[(T * 12 | 0) % 7];
     ctx.globalAlpha = k * .5;
     ctx.fillStyle = pc;
     ctx.beginPath(); ctx.ellipse(g.x, g.y - 4, 9, 15, 0, 0, 6.283); ctx.fill();
@@ -945,7 +945,6 @@ function hero() {
   const fx = Math.cos(P.face) < 0 ? -1 : 1;
   const run = P.still < .06, t = T * 11;
   const bob = run ? Math.sin(t) * 1.6 : Math.sin(T * 2.6) * .9;
-  const skin = inv ? '#fff' : '#f0c090';
   const jkt = inv ? '#fff' : oc ? '#fcfcfc' : C_AMB;      // 霓虹黄夹克
   const chr = inv ? '#fff' : C_CHR;                       // 义体铬
 
@@ -971,6 +970,8 @@ function hero() {
   ctx.moveTo(4, 5); ctx.lineTo(8 - ls, 15); ctx.stroke();
   ctx.strokeStyle = C_ICE; ctx.lineWidth = 1;             // 关节冷光
   ctx.beginPath(); ctx.moveTo(-8, 10); ctx.lineTo(-6, 10); ctx.moveTo(6, 10); ctx.lineTo(8, 10); ctx.stroke();
+  ctx.fillStyle = '#fff';                                 // 马蹄
+  ctx.fillRect(-12 + ls, 13, 7, 3); ctx.fillRect(5 - ls, 13, 7, 3);
   // 风衣下摆(跑动外翻)
   ctx.fillStyle = inv ? '#fff' : '#2a2438';
   ctx.beginPath();
@@ -990,55 +991,28 @@ function hero() {
   else { ctx.beginPath(); ctx.moveTo(2, -8 + bob); ctx.lineTo(-2, 2 + bob); ctx.stroke(); }  // 逆手收刀
   ctx.strokeStyle = chr; ctx.lineWidth = 3;               // 前伸的空手(忍者起手式)
   ctx.beginPath(); ctx.moveTo(-3, -8 + bob); ctx.lineTo(9, -10 + bob); ctx.stroke();
-  // 头
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.arc(0, -16 + bob, 6, 0, 6.283); ctx.fill();
-  if (oc) {                                              // 超频起势: 系上头巾, 尾带随风
-    ctx.fillStyle = '#1a1626'; ctx.fillRect(-7, -22 + bob, 14, 3.4);
-    ctx.strokeStyle = '#1a1626'; ctx.lineWidth = 2.4;
-    const bw2 = Math.sin(T * 9) * 4;
-    ctx.beginPath(); ctx.moveTo(-6, -21 + bob);
-    ctx.quadraticCurveTo(-16, -18 + bob + bw2, -22, -9 + bob); ctx.stroke();
+  // 🦄 表情式侧脸: 彩虹鬃毛、金角、长马嘴与大眼
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = inv ? '#fff' : RAINBOW[(i + 4) % 7]; ctx.beginPath();
+    ctx.moveTo(-7, -25 + i * 4 + bob); ctx.lineTo(-16, -22 + i * 5 + bob); ctx.lineTo(-8, -17 + i * 4 + bob); ctx.fill();
   }
-  // 尖刺发
-  ctx.fillStyle = inv ? '#fff' : '#e04040';
-  for (let i = -2; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * 2.6 - 1.4, -20 + bob); ctx.lineTo(i * 2.6 + .6, -27 - Math.abs(i) * -1.4 + bob);
-    ctx.lineTo(i * 2.6 + 1.8, -20 + bob); ctx.fill();
-  }
-  // 口中横刀: 第三把刃
-  ctx.strokeStyle = '#2a2438'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(-9, -12 + bob); ctx.lineTo(11, -12.6 + bob); ctx.stroke();
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4;
-  ctx.beginPath(); ctx.moveTo(-8, -12.8 + bob); ctx.lineTo(11, -13.4 + bob); ctx.stroke();
-  ctx.fillStyle = '#8c3b2a'; ctx.fillRect(-11, -13.6 + bob, 4, 3);      // 刀柄缠绳
-  // 左眼旧伤
-  ctx.strokeStyle = '#a8523c'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(-6, -21 + bob); ctx.lineTo(-3, -14 + bob); ctx.stroke();
-  // 义眼护目条(赛博的招牌)
-  glow(C_ICE, 10);
-  ctx.fillStyle = C_ICE; ctx.fillRect(-6, -17.6 + bob, 12, 2.4);
-  noglow();
-  ctx.fillStyle = C_MAG; ctx.fillRect(3, -17.6 + bob, 3, 2.4);       // 右眼品红
-  // 颈后神经接口
-  ctx.fillStyle = C_ICE;
-  ctx.fillRect(-7, -13 + bob, 1.6, 1.6); ctx.fillRect(-7, -10 + bob, 1.6, 1.6);
+  ctx.fillStyle = inv ? '#fff' : C_AMB;
+  ctx.beginPath(); ctx.moveTo(1, -23 + bob); ctx.lineTo(8, -36 + bob); ctx.lineTo(7, -21 + bob); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(-6, -23 + bob); ctx.lineTo(-11, -30 + bob); ctx.lineTo(0, -23 + bob); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-9, -24 + bob); ctx.quadraticCurveTo(5, -28 + bob, 10, -20 + bob);
+  ctx.lineTo(16, -17 + bob); ctx.quadraticCurveTo(19, -12 + bob, 12, -10 + bob);
+  ctx.lineTo(0, -9 + bob); ctx.quadraticCurveTo(-11, -11 + bob, -9, -24 + bob); ctx.fill();
+  ctx.fillStyle = '#292138'; ctx.beginPath(); ctx.ellipse(2, -20 + bob, 2.7, 3.4, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(1, -21 + bob, .9, 0, 6.283); ctx.fill();
+  ctx.fillStyle = C_MAG; ctx.fillRect(13, -15 + bob, 1.2, 1.2);
   ctx.restore();
 
-  // 单分子刃
-  if (P.swing > 0) {                                     // 三刀横扫: 主刀 + 副刀 + 口中刀各走一条弧
+  // 单分子刃: 任何姿态只保留主手刀
+  if (P.swing > 0) {
     const sw = 1 - P.swing / .12;
-    const sa = P.face - 1.45 + sw * 2.9;
-    for (let i = 1; i < 4; i++) blade(sa - i * .3, .16 * (4 - i), 0);
-    if (oc) for (let i = -1; i < 2; i += 2) blade(sa + i * .95, .3, 0);   // 超频: 鬼形分身刀
-    blade(sa, 1, 0);
-    blade(sa - .52, .8, 0);
-    blade(sa + .44, .62, 0);
-  } else {                                               // 收势: 双刀逆手贴臂
-    blade(P.face + 2.5, 1, 1);
-    blade(P.face + 2.02, .72, 1);
-  }
+    blade(P.face - 1.45 + sw * 2.9, 1, 0);
+  } else blade(P.face + 2.5, 1, 1);                      // 收势: 单刀逆手贴臂
   ctx.restore();
 }
 
@@ -1060,7 +1034,7 @@ function scarf() {
   ctx.globalAlpha = 1;
 }
 function blade(a, al, rev) {
-  const bc = P.fren > 0 ? RAINBOW[(T * 12 | 0) % 7] : C_MAG;
+  const bc = RAINBOW[(T * 12 | 0) % 7];
   ctx.save(); ctx.rotate(a); ctx.globalAlpha = al;
   ctx.lineCap = 'round';
   if (rev) {                                             // 逆手: 刀身贴前臂向后

@@ -1,7 +1,7 @@
 # BLADE:13 — PRISM BREAK
 
 **An 8-bit cyberpunk survivors-like in 13 kilobytes.**
-UNICORN, the city's rainbow-energy AI, has corrupted every machine into a prism beast. Sever the network with three monomolecular blades, collect seven-color shards, and trigger PRISM BREAK before the BLACK UNICORN ends your run.
+UNICORN, the city's rainbow-energy AI, has corrupted every machine into a prism beast. A standing chibi unicorn cuts back with one rainbow monomolecular blade, collects seven-color shards, and triggers PRISM BREAK before the BLACK UNICORN ends the run.
 
 > js13kGames 2026 entry — Theme: Unicorns and Rainbows — Desktop + Mobile
 
@@ -31,12 +31,13 @@ UNICORN, the city's rainbow-energy AI, has corrupted every machine into a prism 
 
 ## What is in there
 
-- **Three-sword sweep.** You attack automatically. Positioning is the whole game.
+- **One-sword chibi unicorn.** The hero is a standing emoji-profile unicorn in the original neon jacket and scarf. It attacks automatically with one reverse-grip blade; positioning is the whole game.
+- **Rainbow in every action.** Normal slashes cycle the spectrum, Blink leaves rainbow ghosts and a prism ring, and PRISM BREAK turns the full combat layer into its most saturated state.
 - **Blink with charges.** Two charges, each recharging over time; kills speed the recharge but a hard lockout means you can never spam it. Landing costs you a beat of attack recovery — blink is a decision, not a button.
 - **PRISM BREAK.** Kills fill the meter, but it does *not* fire on its own. You choose the moment. Its mechanics are unchanged: while it runs, the screen tears into magenta/cyan chroma split and every kill extends it.
 - **19 cards, three kinds.** `PROGRAM` (blue) and `CHROME` (amber) are clean upgrades; `OVERLOAD` (red) always costs you something — +55% damage for −30% max HP, +50% attack speed for −25% reach. A few cards only appear once you have committed to a line. You will only ever see about a third of the pool in one run.
 - **Seven enemy families.** Crawlers, dashers, brutes, hexers, splitters (die into two), bombers (detonate, and your blink can set them off deliberately), and hives that keep spawning until you go and kill them. Elites wear a magenta pulse; bosses telegraph a ground slam.
-- **Threat tiers.** Every 28 seconds the threat level rises and a wave rolls in from one direction. Enemy speed keeps climbing until, late on, running is no longer an option.
+- **Threat tiers.** Every 22 seconds the threat level rises and a wave rolls in from one direction. The first BLACK UNICORN arrives at 32 seconds, and enemy speed keeps climbing until running is no longer an option.
 - **A city that generates itself.** Streets, rooftops, neon and retracting spike traps all come out of one coordinate hash — no stored map, infinite in every direction.
 
 ## Under the hood
@@ -55,7 +56,7 @@ npm ci               # exact terser + roadroller versions from package-lock.json
 python3 build.py     # src/*.js -> minify -> pack -> zip
 ```
 
-`build.py` concatenates `src/*.js` in filename order, refuses to build if any external-request API appears in the source, minifies with terser, packs with Roadroller, and reports the zip size against the 13,312-byte hard limit. The themed release target is at most 13,100 bytes.
+`build.py` concatenates `src/*.js` in filename order, refuses to build if any external-request API appears in the source, minifies with terser, packs with Roadroller, and enforces both the 13,100-byte delivery target and the 13,312-byte hard limit.
 Roadroller parameters and zip metadata are fixed, so identical source produces an identical submission archive.
 
 Output lands in `build/`:
@@ -77,6 +78,7 @@ Three layers, all headless:
 | `render-smoke.mjs` | Every render path against a proxied Canvas stub, across all four game states plus input |
 | `packed-smoke.mjs` | The **Roadroller-packed build** actually runs — catches the classic "fine in dev, broken after packing" failure |
 | `runner-test.mjs` | Dasher charge/burst timers stay finite and the burst actually occurs |
+| `pace-test.mjs` | Opening density, enemy unlocks, 22-second threats and the 32-second first boss stay fixed |
 | `release-guard.mjs` | Public text contains no blocked third-party names |
 
 Plus focused probes: `cheese.mjs` (bots that deliberately try to exploit sustain, fleeing and camping), `bench.mjs` (a kiting bot used for difficulty tuning), `terrain.mjs`, `pose.mjs`, `port.mjs` (portrait layout), `perf.mjs`, `seed-sweep.mjs` (deterministic seeds, for reproducing intermittent crashes).
